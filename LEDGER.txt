@@ -8,5 +8,5 @@ nelhage: 45
 carl: 30
 ludwig: 20
 pa: 30
-evan: 1
+evan: 2
 jim: 1
