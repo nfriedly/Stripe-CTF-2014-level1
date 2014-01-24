@@ -23,6 +23,7 @@ export clone_spec=$1
 export public_username=$2
 
 prepare_index() {
+    #reset
     perl -i -pe 's/($ENV{public_username}: )(\d+)/$1 . ($2+1)/e' LEDGER.txt
     grep -q "$public_username" LEDGER.txt || echo "$public_username: 1" >> LEDGER.txt
 
@@ -30,47 +31,14 @@ prepare_index() {
 }
 
 solve() {
-    # Brute force until you find something that's lexicographically
-    # small than $difficulty.
-    difficulty=$(cat difficulty.txt)
-
-    # Create a Git tree object reflecting our current working
-    # directory
-    tree=$(git write-tree)
-    parent=$(git rev-parse HEAD)
-    timestamp=$(date +%s)
-
-    counter=0
-
-    while let counter=counter+1; do
-	echo -n .
-
-	body="tree $tree
-parent $parent
-author CTF user <me@example.com> $timestamp +0000
-committer CTF user <me@example.com> $timestamp +0000
-
-Give me a Gitcoin
-
-$counter"
-
-	# See http://git-scm.com/book/en/Git-Internals-Git-Objects for
-	# details on Git objects.
-	sha1=$(git hash-object -t commit --stdin <<< "$body")
-
-	if [ "$sha1" "<" "$difficulty" ]; then
-	    echo
-	    echo "Mined a Gitcoin with commit: $sha1"
-	    git hash-object -t commit --stdin -w <<< "$body"  > /dev/null
-	    git reset --hard "$sha1" > /dev/null
-	    break
-	fi
-    done
+    ~/level1/hasher.js
+    return $?
 }
 
 reset() {
-    git fetch origin master >/dev/null 2>/dev/null
-    git reset --hard origin/master >/dev/null
+    echo "resetting..."
+    git fetch origin master
+    git reset --hard origin/master
 }
 
 # Set up repo
@@ -87,12 +55,17 @@ fi
 
 while true; do
     prepare_index
-    solve
-    if git push origin master; then
-	echo "Success :)"
-	break
-    else
-	echo "Starting over :("
-	reset
+    if solve; then
+        if git push origin master; then
+            echo "Success :)"
+            break
+        else
+            echo "darn, thought we had that one"
+            reset
+        fi
+    else 
+        echo "Starting over :("
+        reset
     fi
+        
 done
