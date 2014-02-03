@@ -81,7 +81,7 @@ if (cluster.isMaster) {
         tree = data.tree;
         parent = data.parent;
         if (!tree || !parent) return;
-        bodyStart = "tree " + tree + "\nparent " + parent + "\nauthor CTF user <me@example.com> " + timestamp + " +0000\ncommitter CTF user <me@example.com>"  + timestamp + " +0000\n\nGive me a Gitcoin ";
+        bodyStart = "tree " + tree + "\nparent " + parent + "\nauthor CTF user <me@example.com> " + timestamp + " +0000\ncommitter CTF user <me@example.com>"  + timestamp + " +0000\n\nGive me a Gitcoin " +  process.pid + "-";
         console.log('worker %d starting to hash...', process.pid);
         mine();
     });
@@ -93,7 +93,7 @@ if (cluster.isMaster) {
 
         while(true) {
             counter++;
-            body = bodyStart + process.pid + counter;
+            body = bodyStart + counter;
             sha1 = crypto.createHash('sha1').update('commit ' + Buffer.byteLength(body) + '\0' + body).digest('hex')
             if (counter % 1000000 == 0) {
                 var seconds =  (Date.now() - lastTime)/1000;
